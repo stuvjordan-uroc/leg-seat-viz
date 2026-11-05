@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Legislative chamber layout example</title>
+  <script type="importmap">
+      {
+        "imports": {
+          "d3": "https://cdn.jsdelivr.net/npm/d3@7/+esm"
+        }
+      }
+    </script>
+  <style>
+    #chamber path.seat {
+      stroke: white;
+      stroke-width: 1;
+    }
+
+    #chamber [data-party="Democratic"] {
+      fill: #2b6cb0;
+    }
+
+    #chamber [data-party="Independent"] {
+      fill: #ba34eb;
+    }
+
+    #chamber [data-party="Republican"] {
+      fill: #c53030;
+    }
+
+    #chamber [data-party="Vacant"] {
+      fill: #55eb34;
+    }
+  </style>
+</head>
+
+<body>
+  <svg id="chamber" width="1000" height="600" viewBox="0 0 1000 600"></svg>
+  <script type="module">
+    import { select } from "d3";
+    import { layoutChamber } from "../src/index.js";
+
+    const partyCounts = [
+      ["Democratic", 270],
+      //["Independent", 1],
+      ["Vacant", 10],
+      ["Republican", 435 - 270 - 10]
+    ];
+    const seats = partyCounts.flatMap(([party, count]) =>
+      Array.from({ length: count }, (_, index) => ({
+        id: `${party}-${index + 1}`,
+        party
+      }))
+    );
+
+    const chamber = select("#chamber")
+      .append("g")
+      .attr("class", "seats")
+      .attr("transform", "translate(100, 50)");
+
+    layoutChamber(
+      chamber,
+      800,
+      500,
+      35,
+      seats,
+      (seat) => seat.party,
+      partyCounts.map(([party]) => party)
+    );
+  </script>
+</body>
+
+</html>

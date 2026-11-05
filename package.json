@@ -1,0 +1,17 @@
+{
+  "name": "election-viz-2026",
+  "version": "0.1.0",
+  "description": "Reusable D3 visualizations for legislative chambers",
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  },
+  "main": "./src/index.js",
+  "exports": "./src/index.js",
+  "files": [
+    "src"
+  ],
+  "peerDependencies": {
+    "d3": "^7.0.0"
+  }
+}
