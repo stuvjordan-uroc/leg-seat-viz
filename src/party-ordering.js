@@ -2,15 +2,26 @@ function getSlotCenterAngle(slot) {
   return (slot.startAngle + slot.endAngle) / 2;
 }
 
-function findBoundaryRays(slots, angularPitch, angularGap, partyCounts, totalSeats) {
+function findBoundaryRays(
+  slots,
+  angularPitch,
+  angularGap,
+  angularOffset,
+  partyCounts,
+  totalSeats
+) {
   const rayIndexes = new Set();
 
   for (const slot of slots) {
     rayIndexes.add(
-      Math.round((slot.startAngle - angularGap / 2) / angularPitch)
+      Math.round(
+        (slot.startAngle - angularGap / 2 - angularOffset) / angularPitch
+      )
     );
     rayIndexes.add(
-      Math.round((slot.endAngle + angularGap / 2) / angularPitch)
+      Math.round(
+        (slot.endAngle + angularGap / 2 - angularOffset) / angularPitch
+      )
     );
   }
 
@@ -23,7 +34,7 @@ function findBoundaryRays(slots, angularPitch, angularGap, partyCounts, totalSea
   const candidates = [...rayIndexes]
     .sort((a, b) => a - b)
     .map((index) => {
-      const angle = index * angularPitch;
+      const angle = angularOffset + index * angularPitch;
       return {
         angle,
         slotsBefore: orderedSlots.filter(
@@ -157,6 +168,7 @@ export function orderPartyBlocks(seats, partyOf, partyOrder, slots, geometry) {
     slots,
     geometry.angularPitch,
     geometry.angularGap,
+    geometry.angularOffset,
     partyCounts,
     seats.length
   );

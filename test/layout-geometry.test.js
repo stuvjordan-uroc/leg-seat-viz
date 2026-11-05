@@ -2,24 +2,34 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { calculateLayoutGeometry } from "../src/layout-geometry.js";
 
-test("balances seat counts with smaller rows at the outside", () => {
+test("places full rows inside with a smaller remainder row at the outside", () => {
   const geometry = calculateLayoutGeometry(800, 500, 11, 435);
 
   assert.deepEqual(geometry.rowCounts, [
-    40, 40, 40, 40, 40, 40, 39, 39, 39, 39, 39
+    40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 35
   ]);
+  assert.ok(
+    geometry.rowCounts
+      .slice(0, -1)
+      .every((count) => count === geometry.maxSeatsPerRow)
+  );
   assert.equal(geometry.rowCounts.reduce((sum, count) => sum + count, 0), 435);
 });
 
-test("keeps angular gaps and seat angles within the shared pitch", () => {
+test("sizes the shared pitch and gap to complete a semicircle for full rows", () => {
   const geometry = calculateLayoutGeometry(800, 500, 11, 435);
 
   assert.ok(geometry.angularGap > 0);
-  assert.ok(geometry.angularGap <= 0.02);
   assert.ok(geometry.seatAngle > 0);
   assert.ok(
     Math.abs(geometry.seatAngle + geometry.angularGap - geometry.angularPitch) <
       Number.EPSILON * 10
+  );
+  assert.ok(
+    Math.abs(
+      geometry.maxSeatsPerRow * geometry.angularPitch - geometry.angularGap -
+        Math.PI
+    ) < Number.EPSILON * 10
   );
 });
 
@@ -41,10 +51,9 @@ test("keeps row gaps under the maximum and seat depth positive", () => {
   );
 });
 
-test("reduces angular and radial gaps when the maxima would not fit", () => {
+test("keeps seat angles and radial gaps positive for many rows", () => {
   const geometry = calculateLayoutGeometry(800, 500, 100, 10000);
 
-  assert.ok(geometry.angularGap < 0.02);
   assert.ok(geometry.rowGap < 8);
   assert.ok(geometry.seatAngle > 0);
   assert.ok(geometry.seatDepth > 0);

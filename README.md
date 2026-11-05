@@ -39,5 +39,7 @@ layoutChamber(chamber, 800, 500, 35, seats, (seat) => seat.party, partyOrder);
 
 `layoutChamber` expects a D3 selection, the chamber width and height, the row
 count, the seats array, a function that returns each seat's party, and the
-desired party order. See [`examples/basic.html`](./examples/basic.html) for a
-complete browser example.
+desired party order. Full rows span a complete semicircle; any partial
+remainder row is placed at the outside and retains the shared radial aisle
+alignment. See [`examples/basic.html`](./examples/basic.html) for a complete
+browser example.

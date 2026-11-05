@@ -1,6 +1,5 @@
 const EDGE_MARGIN = 16;
 const INNER_RADIUS = 20;
-const MAX_ANGULAR_GAP = 0.02;
 const MAX_ROW_GAP = 8;
 
 export function calculateLayoutGeometry(width, height, rowCount, seatCount) {
@@ -17,17 +16,23 @@ export function calculateLayoutGeometry(width, height, rowCount, seatCount) {
     throw new RangeError("seatCount must be a positive integer");
   }
 
-  const seatsPerRow = Math.floor(seatCount / rowCount);
-  const extraSeats = seatCount % rowCount;
-  const rowCounts = Array.from(
-    { length: rowCount },
-    (_, index) => seatsPerRow + (index < extraSeats ? 1 : 0)
-  );
-  const maxSeatsPerRow = seatsPerRow + (extraSeats > 0 ? 1 : 0);
-  const angularPitch =
-    Math.PI / (2 * Math.ceil(maxSeatsPerRow / 2));
-  const angularGap = Math.min(MAX_ANGULAR_GAP, angularPitch / 3);
+  const maxSeatsPerRow = Math.ceil(seatCount / rowCount);
+  const fullRows = Math.floor(seatCount / maxSeatsPerRow);
+  const remainderSeats = seatCount % maxSeatsPerRow;
+  const rowCounts = Array.from({ length: rowCount }, (_, index) => {
+    if (index < fullRows) {
+      return maxSeatsPerRow;
+    }
+    if (index === fullRows) {
+      return remainderSeats;
+    }
+    return 0;
+  });
+  const occupiedRowCount = rowCounts.filter((count) => count > 0).length;
+  const angularPitch = Math.PI / (maxSeatsPerRow - 1 / 3);
+  const angularGap = angularPitch / 3;
   const seatAngle = angularPitch - angularGap;
+  const angularOffset = maxSeatsPerRow % 2 === 1 ? -angularPitch / 2 : 0;
   const centerX = width / 2;
   const centerY = height - EDGE_MARGIN;
   const outerRadius = Math.min(
@@ -42,13 +47,14 @@ export function calculateLayoutGeometry(width, height, rowCount, seatCount) {
   }
 
   const radialSpace = outerRadius - INNER_RADIUS;
-  const rowGap = Math.min(MAX_ROW_GAP, radialSpace / (2 * rowCount));
+  const rowGap = Math.min(MAX_ROW_GAP, radialSpace / (2 * occupiedRowCount));
   const seatDepth =
-    (radialSpace - rowGap * (rowCount - 1)) / rowCount;
+    (radialSpace - rowGap * (occupiedRowCount - 1)) / occupiedRowCount;
 
   return {
     rowCounts,
     maxSeatsPerRow,
+    angularOffset,
     centerX,
     centerY,
     innerRadius: INNER_RADIUS,

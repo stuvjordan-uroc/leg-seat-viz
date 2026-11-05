@@ -43,10 +43,10 @@
     import { layoutChamber } from "../src/index.js";
 
     const partyCounts = [
-      ["Democratic", 270],
+      ["Democratic", 233],
       //["Independent", 1],
-      ["Vacant", 10],
-      ["Republican", 435 - 270 - 10]
+      ["Vacant", 435 - 233 - 148],
+      ["Republican", 148]
     ];
     const seats = partyCounts.flatMap(([party, count]) =>
       Array.from({ length: count }, (_, index) => ({
@@ -64,7 +64,7 @@
       chamber,
       800,
       500,
-      35,
+      5,
       seats,
       (seat) => seat.party,
       partyCounts.map(([party]) => party)

@@ -9,7 +9,8 @@ export function generateSeatSlots(geometry) {
     for (let seatIndex = 0; seatIndex < seatCount; seatIndex += 1) {
       const centerAngle =
         (seatIndex - Math.floor(seatCount / 2) + 0.5) *
-        geometry.angularPitch;
+          geometry.angularPitch +
+        geometry.angularOffset;
 
       slots.push({
         key: `${rowIndex}:${seatIndex}`,

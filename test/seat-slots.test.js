@@ -21,17 +21,17 @@ test("generates one stable slot for every seat in the requested rows", () => {
   );
 });
 
-test("centers an odd row as closely as possible without crossing the center gap", () => {
+test("centers an odd row on the vertical axis and reaches horizontal edges", () => {
   const geometry = calculateLayoutGeometry(800, 500, 1, 5);
   const slots = generateSeatSlots(geometry);
   const centers = slots.map((slot) => (slot.startAngle + slot.endAngle) / 2);
 
   assert.deepEqual(
     centers.map((angle) => Math.round(angle / geometry.angularPitch * 2) / 2),
-    [-1.5, -0.5, 0.5, 1.5, 2.5]
+    [-2, -1, 0, 1, 2]
   );
-  assert.ok(slots.every((slot) => slot.endAngle < Math.PI / 2));
-  assert.ok(slots.every((slot) => slot.startAngle > -Math.PI / 2));
+  assert.ok(Math.abs(slots[0].startAngle + Math.PI / 2) < 1e-12);
+  assert.ok(Math.abs(slots.at(-1).endAngle - Math.PI / 2) < 1e-12);
 });
 
 test("keeps angular gap lanes aligned across rows", () => {
@@ -39,11 +39,44 @@ test("keeps angular gap lanes aligned across rows", () => {
   const slots = generateSeatSlots(geometry);
 
   for (const slot of slots) {
-    const gapLaneIndex = (slot.startAngle - geometry.angularGap / 2) /
+    const gapLaneIndex =
+      (slot.startAngle -
+        geometry.angularGap / 2 -
+        geometry.angularOffset) /
       geometry.angularPitch;
 
     assert.ok(Math.abs(gapLaneIndex - Math.round(gapLaneIndex)) < 1e-12);
   }
+});
+
+test("gives every full row horizontal outer seat edges", () => {
+  const geometry = calculateLayoutGeometry(800, 500, 4, 14);
+  const slots = generateSeatSlots(geometry);
+
+  for (let rowIndex = 0; rowIndex < geometry.rowCounts.length - 1; rowIndex += 1) {
+    const rowSlots = slots.filter((slot) => slot.rowIndex === rowIndex);
+
+    assert.equal(rowSlots.length, geometry.maxSeatsPerRow);
+    assert.ok(Math.abs(rowSlots[0].startAngle + Math.PI / 2) < 1e-12);
+    assert.ok(Math.abs(rowSlots.at(-1).endAngle - Math.PI / 2) < 1e-12);
+  }
+
+  const remainderSlots = slots.filter((slot) => slot.rowIndex === 3);
+  assert.equal(remainderSlots.length, 2);
+  assert.ok(Math.abs(remainderSlots[0].startAngle + Math.PI / 2) > 1e-12);
+  assert.ok(Math.abs(remainderSlots.at(-1).endAngle - Math.PI / 2) > 1e-12);
+});
+
+test("fits the occupied rows to the radial space when the outer row is partial", () => {
+  const geometry = calculateLayoutGeometry(800, 500, 35, 435);
+  const slots = generateSeatSlots(geometry);
+
+  assert.equal(geometry.rowCounts.filter((count) => count > 0).length, 34);
+  assert.ok(
+    Math.abs(
+      Math.max(...slots.map((slot) => slot.outerRadius)) - geometry.outerRadius
+    ) < 1e-12
+  );
 });
 
 test("places rows in increasing radial bands with the configured row gap", () => {
